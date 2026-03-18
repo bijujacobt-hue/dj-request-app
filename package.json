@@ -1,0 +1,15 @@
+{
+  "name": "dj-request-app",
+  "version": "1.0.0",
+  "description": "A full-stack song request app for DJs and their guests. Guests search YouTube, request songs, and vote on each other's picks. DJs manage events, track requests in real time, match against their local library, and download tracks — all from a mobile-friendly dashboard.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.58.2"
+  }
+}
