@@ -1,21 +1,22 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../database/db');
-const { generateId } = require('../utils/helpers');
+const { generateId, validateString, requireString, LIMITS } = require('../utils/helpers');
 
 // POST /api/dj/create - Create new DJ profile
 router.post('/create', (req, res) => {
   const { name, contact_email, contact_phone } = req.body;
 
-  if (!name || !name.trim()) {
-    return res.status(400).json({ error: 'DJ name is required' });
+  const nameResult = requireString(name, 'name');
+  if (nameResult.error) {
+    return res.status(400).json({ error: nameResult.error });
   }
 
   const id = generateId('dj');
   const stmt = db.prepare(
     'INSERT INTO djs (id, name, contact_email, contact_phone) VALUES (?, ?, ?, ?)'
   );
-  stmt.run(id, name.trim(), contact_email || null, contact_phone || null);
+  stmt.run(id, nameResult.value, validateString(contact_email, 'contact_info') || null, validateString(contact_phone, 'contact_info') || null);
 
   const dj = db.prepare('SELECT * FROM djs WHERE id = ?').get(id);
   res.status(201).json(dj);

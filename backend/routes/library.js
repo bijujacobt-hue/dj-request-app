@@ -6,11 +6,15 @@ const os = require('os');
 const db = require('../database/db');
 const { scanFolder } = require('../services/libraryScanner');
 const { matchRequest } = require('../services/matcher');
+const { safePath, validateString, LIMITS } = require('../utils/helpers');
 
 // GET /api/library/browse - Browse directories for folder selection
 router.get('/browse', (req, res) => {
   const requestedPath = req.query.path || os.homedir();
-  const resolved = path.resolve(requestedPath);
+  const resolved = safePath(requestedPath);
+  if (!resolved) {
+    return res.status(400).json({ error: 'Invalid or restricted path' });
+  }
 
   try {
     const entries = fs.readdirSync(resolved, { withFileTypes: true });
@@ -47,13 +51,18 @@ router.post('/scan', async (req, res) => {
     return res.status(400).json({ error: 'dj_id and folder_path are required' });
   }
 
+  const cleanPath = safePath(folder_path);
+  if (!cleanPath) {
+    return res.status(400).json({ error: 'Invalid or restricted folder path' });
+  }
+
   const dj = db.prepare('SELECT id FROM djs WHERE id = ?').get(dj_id);
   if (!dj) {
     return res.status(404).json({ error: 'DJ not found' });
   }
 
   try {
-    const result = await scanFolder(dj_id, folder_path);
+    const result = await scanFolder(dj_id, cleanPath);
     res.json({
       message: 'Scan complete',
       ...result
@@ -69,7 +78,9 @@ router.get('/dj/:djId', (req, res) => {
   let tracks;
 
   if (search) {
-    const pattern = `%${search}%`;
+    // Escape LIKE wildcards to prevent pattern injection
+    const escaped = search.substring(0, LIMITS.search_query).replace(/[%_]/g, '\\$&');
+    const pattern = `%${escaped}%`;
     tracks = db.prepare(`
       SELECT * FROM library
       WHERE dj_id = ? AND (title LIKE ? OR artist LIKE ? OR filename LIKE ?)

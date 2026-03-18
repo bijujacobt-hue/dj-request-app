@@ -3,6 +3,7 @@ const router = express.Router();
 const path = require('path');
 const db = require('../database/db');
 const { startDownload, getProgress, cancelDownload } = require('../services/downloader');
+const { safePath, LIMITS } = require('../utils/helpers');
 
 // POST /api/downloads/start/:requestId - Start download
 router.post('/start/:requestId', async (req, res) => {
@@ -16,7 +17,10 @@ router.post('/start/:requestId', async (req, res) => {
 
   // Determine output directory
   const event = db.prepare('SELECT * FROM events WHERE id = ?').get(request.event_id);
-  let outputDir = output_dir;
+  let outputDir = output_dir ? safePath(output_dir) : null;
+  if (output_dir && !outputDir) {
+    return res.status(400).json({ error: 'Invalid or restricted output directory' });
+  }
   if (!outputDir) {
     if (event && event.download_folder) {
       outputDir = event.download_folder;
@@ -74,6 +78,19 @@ router.post('/batch', async (req, res) => {
     return res.status(400).json({ error: 'request_ids array is required' });
   }
 
+  if (request_ids.length > LIMITS.batch_size) {
+    return res.status(400).json({ error: `Batch size limited to ${LIMITS.batch_size} items` });
+  }
+
+  // Validate output_dir if provided
+  let validatedDir = null;
+  if (output_dir) {
+    validatedDir = safePath(output_dir);
+    if (!validatedDir) {
+      return res.status(400).json({ error: 'Invalid or restricted output directory' });
+    }
+  }
+
   const results = [];
 
   for (const requestId of request_ids) {
@@ -84,7 +101,7 @@ router.post('/batch', async (req, res) => {
     }
 
     const event = db.prepare('SELECT * FROM events WHERE id = ?').get(request.event_id);
-    let dir = output_dir;
+    let dir = validatedDir;
     if (!dir) {
       const safeName = event.name.replace(/[^a-zA-Z0-9]/g, '_');
       dir = path.join(

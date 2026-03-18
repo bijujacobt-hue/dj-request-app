@@ -1,14 +1,20 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../database/db');
-const { generateId } = require('../utils/helpers');
+const { generateId, requireString, validateString } = require('../utils/helpers');
 
 // POST /api/contacts - Submit contact form
 router.post('/', (req, res) => {
   try {
     const { event_id, guest_name, contact_info, message } = req.body;
 
-    if (!event_id || !guest_name?.trim() || !contact_info?.trim()) {
+    if (!event_id) {
+      return res.status(400).json({ error: 'event_id, guest_name, and contact_info are required' });
+    }
+
+    const nameResult = requireString(guest_name, 'name');
+    const infoResult = requireString(contact_info, 'contact_info');
+    if (nameResult.error || infoResult.error) {
       return res.status(400).json({ error: 'event_id, guest_name, and contact_info are required' });
     }
 
@@ -20,7 +26,7 @@ router.post('/', (req, res) => {
     const id = generateId('contact');
     db.prepare(
       'INSERT INTO contacts (id, event_id, guest_name, contact_info, message) VALUES (?, ?, ?, ?, ?)'
-    ).run(id, event_id, guest_name.trim(), contact_info.trim(), message?.trim() || null);
+    ).run(id, event_id, nameResult.value, infoResult.value, validateString(message, 'message') || null);
 
     res.status(201).json({ message: 'Contact submitted', id });
   } catch (err) {

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../database/db');
-const { generateId } = require('../utils/helpers');
+const { generateId, validateString, validateUrl, validateDuration } = require('../utils/helpers');
 
 // GET /api/requests/event/:eventId - Get all requests for event (sorted by votes)
 router.get('/event/:eventId', (req, res) => {
@@ -41,6 +41,20 @@ router.post('/', (req, res) => {
     return res.status(400).json({ error: 'event_id, guest_id, title, source, and source_url are required' });
   }
 
+  // Validate and sanitize inputs
+  const cleanTitle = validateString(title, 'title');
+  const cleanArtist = validateString(artist, 'artist');
+  const cleanSourceUrl = validateUrl(source_url);
+  const cleanThumbnail = validateUrl(thumbnail_url);
+  const cleanDuration = validateDuration(duration_seconds);
+
+  if (!cleanTitle) {
+    return res.status(400).json({ error: 'title is invalid' });
+  }
+  if (!cleanSourceUrl) {
+    return res.status(400).json({ error: 'source_url must be a valid HTTP(S) URL' });
+  }
+
   const event = db.prepare('SELECT id, is_active FROM events WHERE id = ?').get(event_id);
   if (!event) {
     return res.status(404).json({ error: 'Event not found' });
@@ -57,7 +71,7 @@ router.post('/', (req, res) => {
   // Check for duplicate: same source_url in the same event
   const existing = db.prepare(
     'SELECT * FROM requests WHERE event_id = ? AND source_url = ?'
-  ).get(event_id, source_url);
+  ).get(event_id, cleanSourceUrl);
 
   if (existing) {
     // Check if this guest already voted
@@ -89,7 +103,7 @@ router.post('/', (req, res) => {
   db.prepare(`
     INSERT INTO requests (id, event_id, title, artist, source, source_url, thumbnail_url, duration_seconds)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(id, event_id, title, artist || null, source, source_url, thumbnail_url || null, duration_seconds || null);
+  `).run(id, event_id, cleanTitle, cleanArtist || null, validateString(source, 'name') || 'unknown', cleanSourceUrl, cleanThumbnail || null, cleanDuration);
 
   // Create initial vote from the requester
   const voteId = generateId('vote');

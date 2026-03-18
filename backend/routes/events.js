@@ -1,13 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../database/db');
-const { generateId } = require('../utils/helpers');
+const { generateId, validateString, requireString, safePath } = require('../utils/helpers');
 
 // POST /api/events - Create new event
 router.post('/', (req, res) => {
   const { dj_id, name, event_date, download_folder } = req.body;
 
-  if (!dj_id || !name || !name.trim()) {
+  if (!dj_id) {
+    return res.status(400).json({ error: 'dj_id and event name are required' });
+  }
+
+  const nameResult = requireString(name, 'name');
+  if (nameResult.error) {
     return res.status(400).json({ error: 'dj_id and event name are required' });
   }
 
@@ -20,7 +25,7 @@ router.post('/', (req, res) => {
   const stmt = db.prepare(
     'INSERT INTO events (id, dj_id, name, event_date, download_folder) VALUES (?, ?, ?, ?, ?)'
   );
-  stmt.run(id, dj_id, name.trim(), event_date || null, download_folder || null);
+  stmt.run(id, dj_id, nameResult.value, validateString(event_date, 'name') || null, download_folder ? (safePath(download_folder) || download_folder) : null);
 
   const event = db.prepare('SELECT * FROM events WHERE id = ?').get(id);
   res.status(201).json(event);
@@ -85,11 +90,11 @@ router.put('/:id', (req, res) => {
 
   if (footer_text !== undefined) {
     updates.push('footer_text = ?');
-    params.push(footer_text || null);
+    params.push(validateString(footer_text, 'footer_text') || null);
   }
   if (download_folder !== undefined) {
     updates.push('download_folder = ?');
-    params.push(download_folder || null);
+    params.push(download_folder ? (safePath(download_folder) || download_folder) : null);
   }
 
   if (updates.length > 0) {

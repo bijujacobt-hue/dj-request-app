@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../database/db');
-const { generateId } = require('../utils/helpers');
+const { generateId, requireString } = require('../utils/helpers');
 const { generateName } = require('../services/nameGenerator');
 
 // POST /api/guests - Create guest for event
@@ -45,7 +45,8 @@ router.put('/:guestId/name', (req, res) => {
   const { display_name } = req.body;
   const { guestId } = req.params;
 
-  if (!display_name || !display_name.trim()) {
+  const nameResult = requireString(display_name, 'name');
+  if (nameResult.error) {
     return res.status(400).json({ error: 'display_name is required' });
   }
 
@@ -54,7 +55,7 @@ router.put('/:guestId/name', (req, res) => {
     return res.status(404).json({ error: 'Guest not found' });
   }
 
-  db.prepare('UPDATE guests SET display_name = ? WHERE id = ?').run(display_name.trim(), guestId);
+  db.prepare('UPDATE guests SET display_name = ? WHERE id = ?').run(nameResult.value, guestId);
 
   const updated = db.prepare('SELECT * FROM guests WHERE id = ?').get(guestId);
   res.json(updated);

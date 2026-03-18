@@ -36,6 +36,9 @@ router.get('/youtube', rateLimit, async (req, res) => {
     return res.status(400).json({ error: 'Search query (q) is required' });
   }
 
+  // Enforce length limit on search query
+  const query = q.trim().substring(0, 200);
+
   const apiKey = process.env.YOUTUBE_API_KEY;
   if (!apiKey) {
     return res.status(500).json({ error: 'YouTube API key not configured' });
@@ -46,7 +49,7 @@ router.get('/youtube', rateLimit, async (req, res) => {
     const searchResponse = await axios.get(`${YOUTUBE_API_URL}/search`, {
       params: {
         part: 'snippet',
-        q: q.trim(),
+        q: query,
         type: 'video',
         videoCategoryId: '10', // Music category
         maxResults: 10,
