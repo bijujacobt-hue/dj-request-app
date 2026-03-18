@@ -91,6 +91,21 @@ dj-request-app/
 └── data/                      # SQLite database (created on first run)
 ```
 
+## Testing
+
+```bash
+# Run all backend tests (101 tests, ~1.4s)
+cd backend && npm test
+
+# Watch mode for development
+cd backend && npm run test:watch
+
+# Run frontend tests
+cd frontend && npm test
+```
+
+Backend tests use in-memory SQLite for isolation. See `TEST_PLAN.md` for the full test plan.
+
 ## How It Works
 
 1. **DJ creates an account** and starts an event
@@ -100,6 +115,45 @@ dj-request-app/
 5. **DJ monitors** the live request list, sorted by votes, with library match indicators
 6. **DJ downloads** requested tracks directly from the dashboard
 7. **Event closes** — Guests can leave contact messages for future bookings
+
+## Claude Code Development Process
+
+This project is developed with [Claude Code](https://claude.com/claude-code). Here's how the AI assistant uses the project's instruction files during development:
+
+### Before writing code
+
+| File | Purpose |
+|------|---------|
+| `MEMORY.md` | Auto-loaded every conversation. Index of project memories: known patterns, gotchas, testing approaches, and progress. Lives in `.claude/projects/.../memory/`. |
+| `current_status.md` | Where we left off — completed phases, test counts, and the prioritized list of next actions. |
+| `CLAUDE_CODE_PROJECT_PLAN.md` | Original implementation spec: database schema, API endpoints, phase-by-phase build guide, and success criteria. |
+| `ARCHITECTURE.md` | Current system design: route modules, data flow, component inventory, test infrastructure. |
+| `TEST_PLAN.md` | Full test plan with per-endpoint test cases, frontend component tests, integration workflows, and mobile validation checks. |
+
+### During coding
+
+- **`ARCHITECTURE.md`** is referenced for route patterns, DB schema, and component structure.
+- **Memory files** (in `.claude/projects/.../memory/`) are checked for known gotchas — e.g., ESM dynamic imports for `music-metadata`, `vi.mock` limitations with CJS, vote route paths being nested under `/api/requests/votes`.
+
+### After coding
+
+| File | What gets updated |
+|------|-------------------|
+| `current_status.md` | Progress, test counts, completed actions, next steps |
+| `CLAUDE_CODE_PROJECT_PLAN.md` | Checklists and phase completion markers |
+| `ARCHITECTURE.md` | New routes, components, tables, or test files added |
+| `MEMORY.md` + memory files | New learnings, patterns, or gotchas discovered during the session |
+
+### Memory system
+
+Persistent memories are stored as individual markdown files under `.claude/projects/.../memory/` and indexed in `MEMORY.md`. Categories include:
+
+- **user** — who the developer is, their preferences and expertise
+- **feedback** — corrections and confirmed approaches (what to avoid, what to keep doing)
+- **project** — ongoing work context, decisions, deadlines
+- **reference** — pointers to external resources (APIs, dashboards, issue trackers)
+
+Memories carry across conversations so context isn't lost between sessions.
 
 ## License
 

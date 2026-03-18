@@ -14,9 +14,12 @@
 
 ## 1. Unit Tests
 
-### 1.1 Backend Route Tests
+### 1.1 Backend Route Tests — COMPLETE (74 tests passing)
 
-#### 1.1.1 DJ Routes (`/api/dj`)
+> **Status**: All route tests implemented and passing in `backend/tests/routes/`.
+> Run with `cd backend && npm test`.
+
+#### 1.1.1 DJ Routes (`/api/dj`) — 13 tests
 
 | # | Test Case | Method | Endpoint | Input | Expected Result |
 |---|-----------|--------|----------|-------|-----------------|
@@ -27,7 +30,7 @@
 | 5 | Get DJ with invalid ID | GET | `/api/dj/:id` | nonexistent UUID | 404, not found |
 | 6 | Create DJ with very long name | POST | `/api/dj` | `{ name: "A".repeat(500) }` | 400 or truncated, depending on validation |
 
-#### 1.1.2 Event Routes (`/api/events`)
+#### 1.1.2 Event Routes (`/api/events`) — 14 tests
 
 | # | Test Case | Method | Endpoint | Input | Expected Result |
 |---|-----------|--------|----------|-------|-----------------|
@@ -43,7 +46,7 @@
 | 10 | Delete event | DELETE | `/api/events/:id` | valid event ID | 200 or 204, event removed |
 | 11 | Delete nonexistent event | DELETE | `/api/events/:id` | invalid ID | 404 |
 
-#### 1.1.3 Guest Routes (`/api/guests`)
+#### 1.1.3 Guest Routes (`/api/guests`) — 10 tests
 
 | # | Test Case | Method | Endpoint | Input | Expected Result |
 |---|-----------|--------|----------|-------|-----------------|
@@ -53,7 +56,7 @@
 | 4 | Get nonexistent guest | GET | `/api/guests/:id` | invalid ID | 404 |
 | 5 | Create guest with empty name | POST | `/api/guests` | `{ event_id, name: "" }` | 400 |
 
-#### 1.1.4 Request Routes (`/api/requests`)
+#### 1.1.4 Request Routes (`/api/requests`) — 27 tests
 
 | # | Test Case | Method | Endpoint | Input | Expected Result |
 |---|-----------|--------|----------|-------|-----------------|
@@ -67,7 +70,7 @@
 | 8 | Create request on closed event | POST | `/api/requests` | event with `is_active: 0` | 400 or 403 |
 | 9 | CSV export of requests | GET | `/api/requests/export?event_id=X` | valid event_id | 200, Content-Type text/csv, valid CSV content |
 
-#### 1.1.5 Vote Routes (`/api/requests/votes`)
+#### 1.1.5 Vote Routes (`/api/requests/votes`) — included in requests tests
 
 | # | Test Case | Method | Endpoint | Input | Expected Result |
 |---|-----------|--------|----------|-------|-----------------|
@@ -77,7 +80,7 @@
 | 4 | Remove nonexistent vote | DELETE | `/api/requests/votes` | Never-voted combo | 404 or no-op |
 | 5 | Vote on request in closed event | POST | `/api/requests/votes` | Closed event request | 400 or 403 |
 
-#### 1.1.6 Search Routes (`/api/search`)
+#### 1.1.6 Search Routes (`/api/search`) — NOT tested (requires YouTube API mocking)
 
 | # | Test Case | Method | Endpoint | Input | Expected Result |
 |---|-----------|--------|----------|-------|-----------------|
@@ -87,7 +90,7 @@
 | 4 | Search rate limit resets after window | GET | `/api/search?q=test` | After 60s cooldown | 200, returns results again |
 | 5 | Search with special characters | GET | `/api/search?q=%26%23` | Encoded special chars | 200 or graceful error |
 
-#### 1.1.7 Library Routes (`/api/library`)
+#### 1.1.7 Library Routes (`/api/library`) — NOT tested (requires filesystem mocking)
 
 | # | Test Case | Method | Endpoint | Input | Expected Result |
 |---|-----------|--------|----------|-------|-----------------|
@@ -96,7 +99,7 @@
 | 3 | Get library entries for DJ | GET | `/api/library?dj_id=X` | valid dj_id | 200, array of library entries |
 | 4 | Match requests against library | POST | `/api/library/match` | `{ event_id }` | 200, returns match results |
 
-#### 1.1.8 Download Routes (`/api/downloads`)
+#### 1.1.8 Download Routes (`/api/downloads`) — NOT tested (requires yt-dlp mocking)
 
 | # | Test Case | Method | Endpoint | Input | Expected Result |
 |---|-----------|--------|----------|-------|-----------------|
@@ -107,7 +110,7 @@
 | 5 | Download without yt-dlp installed | POST | `/api/downloads` | valid input, yt-dlp missing | 500, clear error message |
 | 6 | Download to nonexistent folder | POST | `/api/downloads` | `{ download_folder: "/nonexistent" }` | 400 or auto-create folder |
 
-#### 1.1.9 Contact Routes (`/api/contacts`)
+#### 1.1.9 Contact Routes (`/api/contacts`) — 10 tests
 
 | # | Test Case | Method | Endpoint | Input | Expected Result |
 |---|-----------|--------|----------|-------|-----------------|
@@ -119,9 +122,11 @@
 
 ---
 
-### 1.2 Backend Service Tests
+### 1.2 Backend Service Tests — COMPLETE (27 tests passing)
 
-#### 1.2.1 nameGenerator Service
+> **Status**: All service tests implemented and passing in `backend/tests/services/`.
+
+#### 1.2.1 nameGenerator Service — 5 tests
 
 | # | Test Case | Input | Expected Result |
 |---|-----------|-------|-----------------|
@@ -130,7 +135,7 @@
 | 3 | Names have expected format | (none) | Name matches pattern (e.g., "Adjective Noun" or configured format) |
 | 4 | Names are reasonably unique | Generate 50 names | No more than ~10% duplicates (probabilistic) |
 
-#### 1.2.2 libraryScanner Service
+#### 1.2.2 libraryScanner Service — 7 tests
 
 | # | Test Case | Input | Expected Result |
 |---|-----------|-------|-----------------|
@@ -144,7 +149,7 @@
 | 8 | Handle permission-denied folder | Unreadable directory | Graceful skip or error, no crash |
 | 9 | Dynamic import of music-metadata | (none) | `await import('music-metadata')` succeeds (ESM-only module in CommonJS) |
 
-#### 1.2.3 matcher Service
+#### 1.2.3 matcher Service — 11 tests
 
 | # | Test Case | Input | Expected Result |
 |---|-----------|-------|-----------------|
@@ -157,7 +162,7 @@
 | 7 | Empty library | Any request | No matches returned |
 | 8 | Empty request list | Empty array | Empty results returned |
 
-#### 1.2.4 downloader Service
+#### 1.2.4 downloader Service — 4 tests
 
 | # | Test Case | Input | Expected Result |
 |---|-----------|-------|-----------------|
@@ -173,7 +178,7 @@
 
 ---
 
-### 1.3 Frontend Component Tests
+### 1.3 Frontend Component Tests — PENDING (infrastructure ready)
 
 #### 1.3.1 SearchBar Component
 

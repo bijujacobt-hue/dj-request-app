@@ -9,10 +9,10 @@
 **What we're building**: A web app where DJs create events, share links with guests who request songs (searched via YouTube/SoundCloud), see requests ranked by votes, and download missing songs automatically.
 
 **Tech Stack**:
-- **Backend**: Node.js + Express + SQLite (better-sqlite3)
-- **Frontend**: React 18 + Vite + Tailwind CSS
+- **Backend**: Node.js + Express 5 + SQLite (better-sqlite3)
+- **Frontend**: React 19 + Vite 7 + Tailwind CSS 4
 - **Downloads**: yt-dlp (must be installed separately)
-- **APIs**: YouTube Data API v3, SoundCloud API
+- **APIs**: YouTube Data API v3
 
 **Key Features**:
 - No traditional login (DJs use simple ID)
@@ -44,6 +44,7 @@ CREATE TABLE events (
     event_date TEXT,
     is_active INTEGER DEFAULT 1,
     download_folder TEXT,
+    footer_text TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     closed_at DATETIME,
     FOREIGN KEY (dj_id) REFERENCES djs(id)
@@ -134,50 +135,64 @@ dj-request-app/
 │   ├── package.json
 │   ├── .env
 │   ├── server.js
+│   ├── vitest.config.mjs
 │   ├── database/
-│   │   ├── db.js
+│   │   ├── db.js              # Test-aware: uses :memory: SQLite when NODE_ENV=test
 │   │   └── schema.sql
-│   ├── routes/
+│   ├── routes/                # 8 route modules
 │   │   ├── dj.js
 │   │   ├── events.js
-│   │   ├── requests.js
+│   │   ├── requests.js        # Also handles vote routes at /votes
 │   │   ├── guests.js
 │   │   ├── library.js
 │   │   ├── downloads.js
-│   │   └── search.js
+│   │   ├── search.js
+│   │   └── contacts.js
 │   ├── services/
 │   │   ├── nameGenerator.js
 │   │   ├── libraryScanner.js
 │   │   ├── downloader.js
 │   │   └── matcher.js
-│   └── utils/
-│       └── helpers.js
+│   ├── utils/
+│   │   └── helpers.js         # Uses crypto.randomUUID() (not uuid package)
+│   └── tests/
+│       ├── setup.js           # In-memory DB + app factory + resetDb helper
+│       ├── routes/            # 5 test files (dj, events, guests, requests, contacts)
+│       └── services/          # 4 test files (nameGenerator, matcher, libraryScanner, downloader)
 ├── frontend/
 │   ├── package.json
-│   ├── vite.config.js
-│   ├── tailwind.config.js
+│   ├── vite.config.js         # Includes test config with happy-dom
 │   ├── index.html
 │   ├── src/
 │   │   ├── main.jsx
 │   │   ├── App.jsx
+│   │   ├── test-setup.js
+│   │   ├── smoke.test.jsx
 │   │   ├── pages/
 │   │   │   ├── GuestEvent.jsx
 │   │   │   ├── DJDashboard.jsx
 │   │   │   ├── EventManager.jsx
 │   │   │   └── EventClosed.jsx
-│   │   ├── components/
+│   │   ├── components/        # 7 components
 │   │   │   ├── SearchBar.jsx
 │   │   │   ├── RequestList.jsx
 │   │   │   ├── RequestCard.jsx
 │   │   │   ├── NamePicker.jsx
-│   │   │   └── DownloadManager.jsx
+│   │   │   ├── DownloadManager.jsx
+│   │   │   ├── FolderBrowser.jsx
+│   │   │   └── Toast.jsx
 │   │   ├── hooks/
 │   │   │   └── usePolling.js
 │   │   └── utils/
 │   │       └── api.js
 │   └── public/
-└── data/
-    └── dj_requests.db (generated)
+├── data/
+│   └── dj_requests.db (generated)
+├── ARCHITECTURE.md
+├── README.md
+├── TEST_PLAN.md
+├── CLAUDE_CODE_PROJECT_PLAN.md
+└── current_status.md
 ```
 
 ---
@@ -190,7 +205,7 @@ dj-request-app/
 
 **Tasks**:
 1. Initialize backend with npm
-2. Install dependencies: `express`, `better-sqlite3`, `cors`, `uuid`, `dotenv`
+2. Install dependencies: `express`, `better-sqlite3`, `cors`, `dotenv` (uses `crypto.randomUUID()` instead of `uuid`)
 3. Create `database/db.js` to initialize SQLite connection
 4. Create `database/schema.sql` with all tables
 5. Create `server.js` with basic Express setup
@@ -248,9 +263,9 @@ GET    /api/requests/event/:eventId   // Get all requests for event (sorted by v
 POST   /api/requests                  // Create new request
 DELETE /api/requests/:id              // Remove request
 
-// Vote routes
-POST   /api/votes                     // Add vote to request
-DELETE /api/votes/:requestId/:guestId // Remove vote
+// Vote routes (defined inside requests router, accessible at /api/requests/votes)
+POST   /api/requests/votes                     // Add vote to request
+DELETE /api/requests/votes/:requestId/:guestId // Remove vote
 ```
 
 **Business Logic**:
@@ -295,8 +310,7 @@ const params = {
 
 **Endpoints**:
 ```javascript
-GET /api/search/youtube?q=song+name     // Search YouTube
-GET /api/search/soundcloud?q=song+name  // Search SoundCloud (optional)
+GET /api/search/youtube?q=song+name     // Search YouTube (rate limited: 10/min/IP)
 ```
 
 **Response format**:
@@ -505,12 +519,19 @@ POST   /api/downloads/batch               // Download multiple
 // DJ can view submissions in dashboard
 ```
 
-**Additional Features**:
+**Contact Endpoints**:
+```javascript
+POST   /api/contacts                  // Submit contact form
+GET    /api/contacts/event/:eventId   // Get contacts for event
+```
+
+**Additional Features** (all implemented):
 - Copy event link button
 - QR code for event link
 - Export requests as CSV
-- Batch operations (delete multiple requests)
-- Search result preview (play snippet)
+- Toast notification system via React Context
+- Footer text editor per event
+- Folder browser for download directory selection
 
 ---
 
@@ -544,13 +565,12 @@ FRONTEND_URL=http://localhost:5173
 ```bash
 # Backend
 cd backend
-npm install express better-sqlite3 cors uuid dotenv music-metadata axios
+npm install express better-sqlite3 cors dotenv music-metadata axios
 
 # Frontend
 cd frontend
 npm install react-router-dom
-npm install -D tailwindcss postcss autoprefixer
-npx tailwindcss init -p
+npm install -D tailwindcss
 ```
 
 ---
@@ -602,7 +622,7 @@ npx tailwindcss init -p
 
 ## Testing Checklist
 
-### Backend Tests
+### Backend Tests — 101 automated tests passing (Vitest)
 - ✅ Database initializes correctly
 - ✅ DJ can be created and retrieved
 - ✅ Event can be created with unique short ID
@@ -614,8 +634,10 @@ npx tailwindcss init -p
 - ✅ Library scanner finds music files
 - ✅ Matcher finds correct songs
 - ✅ yt-dlp downloads work
+- ✅ Route tests: 74 tests across 5 files (dj, events, guests, requests, contacts)
+- ✅ Service tests: 27 tests across 4 files (nameGenerator, matcher, libraryScanner, downloader)
 
-### Frontend Tests
+### Frontend Tests — infrastructure ready, component tests pending
 - ✅ Guest can access event page
 - ✅ Name generation and picker works
 - ✅ Search returns YouTube results
@@ -626,6 +648,7 @@ npx tailwindcss init -p
 - ✅ DJ can create event and get link
 - ✅ DJ can see requests in manager
 - ✅ Downloads trigger and show progress
+- ⬜ Component tests with React Testing Library (SearchBar, RequestCard, etc.)
 
 ---
 

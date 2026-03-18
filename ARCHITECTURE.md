@@ -109,3 +109,27 @@ Full-stack DJ song request application. DJs create events and share links/QR cod
 - events --> requests, guests (CASCADE)
 - requests --> votes, downloads (CASCADE)
 - guests --> votes (CASCADE)
+
+## Test Architecture
+
+### Backend Tests (Vitest v4.1, 101 tests, ~1.4s)
+
+- **Framework**: Vitest with in-memory SQLite for test isolation
+- **Config**: `vitest.config.mjs` (ESM config file — `.mjs` required because backend is CommonJS)
+- **Test helper**: `tests/setup.js` exports `db`, `resetDb()`, and `createApp()`
+- **DB isolation**: `database/db.js` is test-aware — uses `:memory:` SQLite when `NODE_ENV=test` or `VITEST` env var is set. `db._resetForTest()` clears all tables between tests.
+- **HTTP testing**: supertest for route assertions
+
+#### Test Files
+
+| Directory | Files | Tests | Coverage |
+|-----------|-------|-------|----------|
+| `tests/routes/` | dj, events, guests, requests, contacts | 74 | All CRUD, validation, merging, voting, cascade delete |
+| `tests/services/` | nameGenerator, matcher, libraryScanner, downloader | 27 | Format, matching, scanning, progress, exports |
+
+### Frontend Tests (Vitest + happy-dom)
+
+- **Framework**: Vitest with happy-dom environment (not jsdom — avoids ESM issues on Node 20.17)
+- **Config**: test block in `vite.config.js`, setup file at `src/test-setup.js`
+- **Libraries**: @testing-library/react, @testing-library/jest-dom
+- **Status**: Infrastructure ready, component tests not yet written
