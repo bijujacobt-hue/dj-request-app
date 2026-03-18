@@ -21,7 +21,7 @@ export default function EventClosed({ event }) {
   return (
     <div className="min-h-screen ghibli-bg flex items-center justify-center p-4">
       <div className="max-w-md w-full text-center">
-        <h1 className="text-2xl font-bold text-white mb-2">{event.name}</h1>
+        <h1 className="text-2xl font-bold text-white mb-2 truncate">{event.name}</h1>
         <p className="text-slate-400 mb-8">This event has ended</p>
 
         {submitted ? (
@@ -56,7 +56,7 @@ export default function EventClosed({ event }) {
             />
             <button
               type="submit"
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-lg text-sm font-medium"
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg text-sm font-medium"
             >
               Send Message
             </button>

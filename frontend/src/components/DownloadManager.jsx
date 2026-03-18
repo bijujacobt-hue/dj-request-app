@@ -136,28 +136,30 @@ export default function DownloadManager({ requests, eventId, event, onUpdateEven
       {/* Download folder */}
       <div className="mb-4 bg-slate-800 rounded-xl p-3 border border-slate-700">
         <label className="text-xs text-slate-400 mb-1 block">Download folder</label>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <input
             type="text"
             value={folderPath}
             onChange={(e) => { setFolderPath(e.target.value); setFolderDirty(true); }}
             placeholder="Default: ~/Downloads"
-            className="flex-1 bg-slate-700 text-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="flex-1 bg-slate-700 text-white px-3 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
-          <button
-            onClick={() => setShowBrowser(true)}
-            className="bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-2 rounded-lg text-sm shrink-0"
-          >
-            Browse
-          </button>
-          {folderDirty && (
+          <div className="flex gap-2">
             <button
-              onClick={handleSaveFolder}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg text-sm font-medium shrink-0"
+              onClick={() => setShowBrowser(true)}
+              className="flex-1 sm:flex-none bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-2.5 rounded-lg text-sm"
             >
-              Save
+              Browse
             </button>
-          )}
+            {folderDirty && (
+              <button
+                onClick={handleSaveFolder}
+                className="flex-1 sm:flex-none bg-purple-600 hover:bg-purple-700 text-white px-3 py-2.5 rounded-lg text-sm font-medium"
+              >
+                Save
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -214,7 +216,7 @@ export default function DownloadManager({ requests, eventId, event, onUpdateEven
                   {!isCompleted && !isDownloading && (
                     <button
                       onClick={() => handleDownload(request.id)}
-                      className="bg-slate-700 hover:bg-slate-600 text-white px-2 sm:px-3 py-1.5 rounded-lg text-xs"
+                      className="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg text-xs"
                     >
                       DL
                     </button>

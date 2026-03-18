@@ -69,7 +69,7 @@ export default function RequestCard({ request, guestId, onVoteChanged, onDelete 
         {canDelete && (
           <button
             onClick={handleDelete}
-            className="text-slate-600 hover:text-red-400 text-lg p-1 transition-colors"
+            className="text-slate-600 hover:text-red-400 text-lg p-2 -m-1 transition-colors"
             title="Remove your request"
           >
             &times;

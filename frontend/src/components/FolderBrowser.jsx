@@ -92,7 +92,7 @@ export default function FolderBrowser({ onSelect, onClose, initialPath }) {
           <p className="text-xs text-slate-500 truncate mb-2">{current}</p>
           <button
             onClick={() => onSelect(current)}
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg text-sm font-medium"
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg text-sm font-medium"
           >
             Select This Folder
           </button>

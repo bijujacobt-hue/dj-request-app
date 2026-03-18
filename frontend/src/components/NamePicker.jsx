@@ -22,26 +22,26 @@ export default function NamePicker({ guest, onNameUpdated }) {
 
   if (editing) {
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <input
           type="text"
           value={customName}
           onChange={(e) => setCustomName(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSave()}
           placeholder="Enter your name..."
-          className="bg-slate-700 text-white px-3 py-1.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+          className="bg-slate-700 text-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
           autoFocus
         />
         <button
           onClick={handleSave}
           disabled={loading || !customName.trim()}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-sm disabled:opacity-50"
+          className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg text-sm disabled:opacity-50"
         >
           Save
         </button>
         <button
           onClick={() => setEditing(false)}
-          className="text-slate-400 hover:text-white text-sm"
+          className="text-slate-400 hover:text-white text-sm px-2 py-2"
         >
           Cancel
         </button>
@@ -54,7 +54,7 @@ export default function NamePicker({ guest, onNameUpdated }) {
       <span className="text-purple-400 font-medium">{guest.display_name}</span>
       <button
         onClick={() => { setCustomName(guest.display_name); setEditing(true); }}
-        className="text-slate-500 hover:text-slate-300 text-xs"
+        className="text-slate-500 hover:text-slate-300 text-sm px-2 py-1"
       >
         change name
       </button>

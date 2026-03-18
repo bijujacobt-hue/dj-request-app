@@ -194,11 +194,11 @@ export default function DJDashboard() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold text-white">{dj.name}</h1>
-            <p className="text-slate-500 text-xs font-mono mt-1">ID: {dj.id}</p>
+            <p className="text-slate-500 text-xs font-mono mt-1 truncate max-w-[200px] sm:max-w-none">ID: {dj.id}</p>
           </div>
           <button
             onClick={handleLogout}
-            className="text-slate-400 hover:text-white text-sm"
+            className="text-slate-400 hover:text-white text-sm py-2 px-3"
           >
             Logout
           </button>
@@ -256,13 +256,13 @@ export default function DJDashboard() {
                     <div className="flex items-center gap-2 shrink-0">
                       <button
                         onClick={() => copyEventLink(event.id)}
-                        className="text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-1.5 rounded-lg"
+                        className="text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-2 rounded-lg"
                       >
                         {copiedId === event.id ? 'Copied!' : 'Copy Link'}
                       </button>
                       <button
                         onClick={() => navigate(`/dj/event/${event.id}`)}
-                        className="text-xs bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg"
+                        className="text-xs bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg"
                       >
                         Manage
                       </button>
@@ -290,7 +290,7 @@ export default function DJDashboard() {
                     <h3 className="font-medium text-slate-400">{event.name}</h3>
                     <button
                       onClick={() => navigate(`/dj/event/${event.id}`)}
-                      className="text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-1.5 rounded-lg"
+                      className="text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-2 rounded-lg"
                     >
                       View
                     </button>

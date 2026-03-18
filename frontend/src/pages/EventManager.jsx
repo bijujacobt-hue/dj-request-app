@@ -218,11 +218,11 @@ export default function EventManager() {
       <div className="max-w-3xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-2">
-          <button onClick={() => navigate('/dj')} className="text-slate-400 hover:text-white text-sm py-1">
+          <button onClick={() => navigate('/dj')} className="text-slate-400 hover:text-white text-sm py-2">
             &larr; Dashboard
           </button>
           {event.is_active && (
-            <button onClick={handleClose} className="text-red-400 hover:text-red-300 text-sm py-1">
+            <button onClick={handleClose} className="text-red-400 hover:text-red-300 text-sm py-2">
               Close Event
             </button>
           )}
@@ -291,7 +291,7 @@ export default function EventManager() {
             <button
               key={t}
               onClick={() => handleTabChange(t)}
-              className={`flex-1 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
+              className={`flex-1 py-2.5 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
                 tab === t ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -374,7 +374,7 @@ export default function EventManager() {
                       <span className="text-purple-400 font-medium text-sm">{req.vote_count}</span>
                       <button
                         onClick={() => handleDelete(req.id)}
-                        className="text-slate-600 hover:text-red-400 text-lg p-1"
+                        className="text-slate-600 hover:text-red-400 text-lg p-2 -m-1"
                         title="Remove request"
                       >
                         &times;

@@ -147,7 +147,7 @@ export default function GuestEvent() {
       <div className="max-w-2xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-white">{event.name}</h1>
+          <h1 className="text-2xl font-bold text-white truncate">{event.name}</h1>
           {event.event_date && (
             <p className="text-slate-500 text-sm mt-1">{event.event_date}</p>
           )}
